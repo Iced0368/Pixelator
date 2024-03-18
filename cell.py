@@ -64,9 +64,11 @@ class Cell:
             return 0
         tree = KDTree(self.colors) 
         dist, ind = tree.query(self.colors, k=2)
+
+        weighted_dist = dist * self.color_weight[:, np.newaxis]
         
-        self.dominant_index = np.argmin(dist[:, 1])
-        self.character_index = np.argmax(dist[:, 1])
+        self.dominant_index = np.argmin(weighted_dist[:, 1])
+        self.character_index = np.argmax(weighted_dist[:, 1])
 
 class CellImage:
     def __init__(self, image, target_width, target_height=None):
