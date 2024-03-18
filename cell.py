@@ -4,6 +4,7 @@ import random
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.neighbors import KDTree 
 
 def color_diff(a, b):
     return np.sum(np.abs(a - b))
@@ -14,6 +15,7 @@ class Cell:
         self.colors = []
         self.color_weight = []
         self.dominant_index = 0
+        self.character_index = 0
 
         self.rearranged = False
         self.isOuter = False
@@ -53,6 +55,18 @@ class Cell:
     
     def get_dominant(self):
         return self.colors[self.dominant_index]
+    
+    def get_character(self):
+        return self.colors[self.character_index]
+    
+    def set_KDdominant(self):
+        if len(self.colors) < 2:
+            return 0
+        tree = KDTree(self.colors) 
+        dist, ind = tree.query(self.colors, k=2)
+        
+        self.dominant_index = np.argmin(dist[:, 1])
+        self.character_index = np.argmax(dist[:, 1])
 
 class CellImage:
     def __init__(self, image, target_width, target_height=None):
@@ -88,9 +102,12 @@ class CellImage:
                         else:
                             cell.color_weight[color_index] += 1
 
+                cell.color_weight = np.array(cell.color_weight)
+                cell.colors = np.array(cell.colors)
+
                 self.cells[i][j] = cell
 
-    def get_edge(self, image, threshold=50):
+    def get_edge(self, image, threshold=30):
         grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         edge_image = cv2.Canny(grayscale_image, threshold, threshold*2)
         edge_image_resized = cv2.resize(edge_image, (self.width, self.height))
@@ -101,22 +118,27 @@ class CellImage:
         height, width = self.height, self.width
         for i in range(height):
             for j in range(width):
-                print(i, j)
+                #print(i, j)
                 cell = self.cells[i][j]
+                
+                '''
                 if not cell.rearranged:
                     cell.rearrange()
+                
                 cell.dominant_index = 0
+                '''
+                cell.set_KDdominant()
 
     def extract(self):
         extracted_image = np.empty((len(self.cells), len(self.cells[0]), 3), dtype=np.uint8)
         for i in range(len(self.cells)):
             for j in range(len(self.cells[0])):
                 cell = self.cells[i][j]
-                if not cell.isOuter or np.sum(cell.get_dominant()) < np.sum(cell.colors[-1]):
+                if not cell.isOuter or np.sum(cell.get_dominant()) < np.sum(cell.get_character()):
                     extracted_image[i][j] = cell.get_dominant()
                 else:
                     t = 0.5
-                    extracted_image[i][j] = ((1-t)*cell.get_dominant() + t*cell.colors[-1].astype('float32')).astype('uint8')
+                    extracted_image[i][j] = ((1-t)*cell.get_dominant() + t*cell.get_character().astype('float32')).astype('uint8')
         return extracted_image
 
 def reduce_colors(image, num_colors):

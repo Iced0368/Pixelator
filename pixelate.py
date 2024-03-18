@@ -1,6 +1,7 @@
 import sys
 import os
 import cv2
+import time
 
 from cell import CellImage, calculate_discontinuity, reduce_colors
 
@@ -25,10 +26,15 @@ def main():
         sys.exit(1)
 
     cell_image = CellImage(image, width, height)
-    print(calculate_discontinuity(cell_image))
+    print('discontinuity=', calculate_discontinuity(cell_image))
 
+    pixelated_image = cell_image.extract()
+    cv2.imwrite("resized_image.png", pixelated_image)
+
+    s = time.time()
     cell_image.set_dominant()
-    print(calculate_discontinuity(cell_image))
+    print('discontinuity=', calculate_discontinuity(cell_image))
+    print('set_dominant time=', time.time()-s)
 
     pixelated_image = cell_image.extract()
     cv2.imwrite("pixelated_image.png", pixelated_image)
