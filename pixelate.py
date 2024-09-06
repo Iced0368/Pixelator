@@ -29,7 +29,8 @@ def main():
 
     pixelated_image = cell_image.extract()
     pixelated_image = Image.fromarray(pixelated_image)
-    pixelated_img_path = f"{filename_only}_resized.png"
+    #pixelated_img_path = f"{filename_only}_resized.png"
+    pixelated_img_path = f"resized.png"
     pixelated_image.save(pixelated_img_path)
 
     s = time.time()
@@ -40,9 +41,10 @@ def main():
     pixelated_image = cell_image.extract()
     pixelated_image = Image.fromarray(pixelated_image)
     pixelated_img_path = f"{filename_only}_pixelated.png"
+    #pixelated_img_path = f"pixelated.png"
     pixelated_image.save(pixelated_img_path)
 
-    #pixelated_image = reduce_colors(pixelated_image, 32)
+    #pixelated_image = reduce_colors(pixelated_image, 20)
     #pixelated_img_path = f"{filename_only.split('.')[0]}_pixelated_reduced.png"
     #pixelated_image.save(pixelated_img_path)
 
